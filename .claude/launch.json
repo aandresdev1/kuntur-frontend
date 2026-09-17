@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mobile-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "web", "--prefix", "mobile"],
+      "port": 8081
+    },
+    {
+      "name": "mobile-web-test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "web:test", "--prefix", "mobile"],
+      "port": 8082
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:dev", "--prefix", "backend"],
+      "port": 3000
+    }
+  ]
+}

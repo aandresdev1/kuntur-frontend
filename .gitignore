@@ -1,7 +1,23 @@
-node_modules
-dist
-.vercel
-.DS_Store
+# mobile/ is its own git repository — not tracked from the monorepo root
+/mobile/
+
+# Node
+node_modules/
+
+# Logs
 *.log
+backend.log
+
+# Env
 .env
 .env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / tooling
+.vscode/
+.playwright-mcp/
+.claude/settings.local.json
