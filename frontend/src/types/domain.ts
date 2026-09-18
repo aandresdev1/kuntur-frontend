@@ -103,6 +103,7 @@ export interface Student {
   status: StudentStatus;
   birth_date: ISODate;
   enrolled_at: ISODate;
+  guardian_count?: number;
 }
 
 // § 10. StudentGuardian

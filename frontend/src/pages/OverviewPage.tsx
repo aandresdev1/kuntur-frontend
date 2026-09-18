@@ -42,11 +42,15 @@ export default function OverviewPage() {
           : "var(--margin)";
 
   if (error) {
+    const friendlyError =
+      error.includes("Cannot GET") || error === "Not Found"
+        ? "No se pudo cargar el dashboard. Verifica la conexión con el servidor."
+        : error;
     return (
       <div>
         <div className="pageTitle">Dashboard.</div>
         <div className="loginError" role="alert" style={{ marginTop: 16 }}>
-          {error}
+          {friendlyError}
         </div>
       </div>
     );

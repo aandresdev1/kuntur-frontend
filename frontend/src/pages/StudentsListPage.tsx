@@ -565,6 +565,7 @@ export default function StudentsListPage() {
                 <tr>
                   <th>Alumno</th>
                   <th>Aula</th>
+                  {!is_teacher && <th>Apoderados asignados</th>}
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -573,6 +574,7 @@ export default function StudentsListPage() {
                   const classroom = s.id_classroom
                     ? classroomById.get(s.id_classroom)
                     : null;
+                  const hasGuardian = (s.guardian_count ?? 0) >= 1;
                   return (
                     <tr
                       key={s.id_student}
@@ -595,6 +597,15 @@ export default function StudentsListPage() {
                           {classroom?.name ?? "Sin aula"}
                         </span>
                       </td>
+                      {!is_teacher && (
+                        <td style={{ textAlign: "center" }}>
+                          {hasGuardian ? (
+                            <span style={{ color: "var(--green)", fontWeight: 600, fontSize: 15 }}>✓</span>
+                          ) : (
+                            <span style={{ color: "var(--ink-soft)" }}>—</span>
+                          )}
+                        </td>
+                      )}
                       <td>
                         <div style={{ display: "flex", gap: 6, flexWrap: "nowrap" }}>
                           <button
