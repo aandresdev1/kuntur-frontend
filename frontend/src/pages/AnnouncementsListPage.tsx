@@ -198,7 +198,7 @@ export default function AnnouncementsListPage() {
           );
           if (cancelled) return;
           const mine = details.find((c) =>
-            c.teacher_links.some((l) => l.id_user === session.id_user),
+            c.teacher_links.some((l) => l.id_user === session!.id_user),
           );
           ctx = mine?.id_classroom ?? "";
         }

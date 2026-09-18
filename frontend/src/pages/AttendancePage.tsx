@@ -733,7 +733,7 @@ function SchoolAdminAttendanceMock() {
 
   const setStatusFor = (id_student: UUID, next: AttendanceStatus) => {
     setRosterStatus((prev) => ({ ...prev, [id_student]: next }));
-    setJustSaved(false);
+    setConfirmed(false);
   };
 
   return (
@@ -939,7 +939,7 @@ function SchoolAdminAttendanceMock() {
           onConfirm={(proposed) => {
             setRosterStatus(proposed);
             setVoiceOpen(false);
-            setJustSaved(false);
+            setConfirmed(false);
           }}
         />
       )}

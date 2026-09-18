@@ -5,11 +5,11 @@ import type {
 } from "@/types/domain";
 
 export const MOCK_CLASSROOMS: Classroom[] = [
-  { id_classroom: "cls_amarilla", id_school: "sch_los_girasoles", name: "Aula Amarilla" },
-  { id_classroom: "cls_roja",     id_school: "sch_los_girasoles", name: "Aula Roja" },
-  { id_classroom: "cls_azul",     id_school: "sch_los_girasoles", name: "Aula Azul" },
-  { id_classroom: "cls_1a",       id_school: "sch_los_girasoles", name: "1° A" },
-  { id_classroom: "cls_2a",       id_school: "sch_los_girasoles", name: "2° A" },
+  { id_classroom: "cls_amarilla", id_school: "sch_los_girasoles", name: "Aula Amarilla", level: "initial_4" },
+  { id_classroom: "cls_roja",     id_school: "sch_los_girasoles", name: "Aula Roja",     level: "initial_3" },
+  { id_classroom: "cls_azul",     id_school: "sch_los_girasoles", name: "Aula Azul",     level: "initial_5" },
+  { id_classroom: "cls_1a",       id_school: "sch_los_girasoles", name: "1° A",          level: "primary_1" },
+  { id_classroom: "cls_2a",       id_school: "sch_los_girasoles", name: "2° A",          level: "primary_2" },
 ];
 
 // UI-facing supplement: education level and roster size. Kept separate from

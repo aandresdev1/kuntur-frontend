@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { useSession } from "@/contexts/SessionContext";
 import { useNavigate } from "react-router-dom";

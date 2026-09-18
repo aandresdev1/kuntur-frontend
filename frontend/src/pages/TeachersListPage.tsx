@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Avatar } from "@/components/Avatar";
 import { Card } from "@/components/Card";
-import { MockBadge } from "@/components/MockBadge";
 import { Pagination } from "@/components/Pagination";
 import { useSession } from "@/contexts/SessionContext";
 import { ImportPopup } from "@/features/import/ImportPopup";
@@ -24,37 +23,24 @@ import {
 } from "@/lib/api/users";
 import type { UUID } from "@/types/domain";
 
-// Not in CONTRACT — the domain enum UserRole only has super/school/teacher/
-// guardian and ClassroomTeacherRole is per-classroom (lead/subject/assistant).
-// This flat display "rol" is a UI-only convenience marked as mock.
-const ROL_OPTIONS_MOCK = [
-  "Docente de aula",
-  "Auxiliar",
-  "Psicología",
-  "Coordinación",
-];
-
 interface TeacherRow {
   id_user: UUID;
   full_name: string;
   email: string;
-  rol_mock: string;
   lead_classrooms: string[];
 }
 
 interface Filters {
-  rol_mock: string;
   sinAsignar: boolean;
 }
 
-const EMPTY_FILTERS: Filters = { rol_mock: "", sinAsignar: false };
+const EMPTY_FILTERS: Filters = { sinAsignar: false };
 
 interface TeacherPopupState {
   id_user?: UUID;
   full_name: string;
   email: string;
   password: string;
-  rol_mock: string;
 }
 
 const SEARCH_ICON = (
@@ -100,7 +86,6 @@ function toRow(
     id_user: u.id_user,
     full_name: u.full_name,
     email: u.email,
-    rol_mock: ROL_OPTIONS_MOCK[0]!,
     lead_classrooms: lead_names,
   };
 }
@@ -169,8 +154,7 @@ export default function TeachersListPage() {
     [classrooms],
   );
 
-  const activeFilterCount =
-    (filtros.rol_mock ? 1 : 0) + (filtros.sinAsignar ? 1 : 0);
+  const activeFilterCount = filtros.sinAsignar ? 1 : 0;
 
   const q = buscador.trim().toLowerCase();
   const filtered = teachers.filter((t) => {
@@ -182,7 +166,6 @@ export default function TeachersListPage() {
       )
     )
       return false;
-    if (filtros.rol_mock && t.rol_mock !== filtros.rol_mock) return false;
     if (filtros.sinAsignar && t.lead_classrooms.length > 0) return false;
     return true;
   });
@@ -195,23 +178,12 @@ export default function TeachersListPage() {
   );
 
   const openNew = () => {
-    setPopup({
-      full_name: "",
-      email: "",
-      password: "",
-      rol_mock: ROL_OPTIONS_MOCK[0]!,
-    });
+    setPopup({ full_name: "", email: "", password: "" });
     setPopupError("");
   };
 
   const openEdit = (t: TeacherRow) => {
-    setPopup({
-      id_user: t.id_user,
-      full_name: t.full_name,
-      email: t.email,
-      password: "",
-      rol_mock: t.rol_mock,
-    });
+    setPopup({ id_user: t.id_user, full_name: t.full_name, email: t.email, password: "" });
     setPopupError("");
   };
 
@@ -263,7 +235,6 @@ export default function TeachersListPage() {
             id_user: created.id_user,
             full_name: created.full_name,
             email: created.email,
-            rol_mock: popup.rol_mock,
             lead_classrooms: [],
           },
           ...prev,
@@ -398,12 +369,6 @@ export default function TeachersListPage() {
 
       {activeFilterCount > 0 && (
         <div className="chipsBar">
-          {filtros.rol_mock && (
-            <span className="filtroChip">
-              Rol: {filtros.rol_mock}{" "}
-              <button onClick={() => setFiltros({ ...filtros, rol_mock: "" })}>✕</button>
-            </span>
-          )}
           {filtros.sinAsignar && (
             <span className="filtroChip">
               Sin aula asignada{" "}
@@ -432,10 +397,6 @@ export default function TeachersListPage() {
               <thead>
                 <tr>
                   <th>Docente</th>
-                  <th>
-                    Rol
-                    <MockBadge />
-                  </th>
                   <th>Correo</th>
                   <th>Aulas asignadas</th>
                 </tr>
@@ -452,9 +413,6 @@ export default function TeachersListPage() {
                         <Avatar full_name={t.full_name} size={28} />
                         {t.full_name}
                       </div>
-                    </td>
-                    <td>
-                      <span className="cellTag">{t.rol_mock}</span>
                     </td>
                     <td className="tdMuted">{t.email}</td>
                     <td>
@@ -499,24 +457,6 @@ export default function TeachersListPage() {
               >
                 ✕
               </button>
-            </div>
-            <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 4 }}>
-              <label className="aulaLbl">
-                Rol
-                <MockBadge />
-              </label>
-              <select
-                className="input"
-                value={filtrosDraft.rol_mock}
-                onChange={(e) =>
-                  setFiltrosDraft({ ...filtrosDraft, rol_mock: e.target.value })
-                }
-              >
-                <option value="">Todos</option>
-                {ROL_OPTIONS_MOCK.map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </select>
             </div>
             <label
               style={{
@@ -617,25 +557,6 @@ export default function TeachersListPage() {
                 value={popup.password}
                 onChange={(e) => setPopup({ ...popup, password: e.target.value })}
               />
-            </div>
-            <div style={{ marginBottom: 18, display: "flex", flexDirection: "column", gap: 4 }}>
-              <label className="aulaLbl">
-                Rol
-                <MockBadge />
-              </label>
-              <select
-                className="input"
-                value={popup.rol_mock}
-                onChange={(e) => setPopup({ ...popup, rol_mock: e.target.value })}
-              >
-                {ROL_OPTIONS_MOCK.map((r) => (
-                  <option key={r}>{r}</option>
-                ))}
-              </select>
-              <div className="hintSmall">
-                Este rol de detalle no está en el modelo; se usa solo como
-                etiqueta en la lista.
-              </div>
             </div>
             {popupError && (
               <div className="loginError" role="alert" style={{ marginBottom: 12 }}>

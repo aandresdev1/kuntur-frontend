@@ -135,37 +135,38 @@ export function ImportPopup({
                 <span>Haz clic para elegir un archivo (.xlsx, .csv)</span>
               )}
             </label>
-            <button
-              className="btnGhost"
-              style={{ marginTop: 10 }}
-              onClick={() => {
-                if (onTemplate) {
-                  Promise.resolve(onTemplate()).catch((err) => {
-                    setErrorMsg(
-                      err instanceof Error
-                        ? err.message
-                        : "No se pudo descargar la plantilla.",
-                    );
-                  });
-                } else {
-                  onFlash?.("Plantilla descargada ✓");
-                }
-              }}
-            >
-              Descargar plantilla
-            </button>
             {errorMsg && (
               <div className="loginError" role="alert" style={{ marginTop: 12 }}>
                 {errorMsg}
               </div>
             )}
-            <div className="modalActions" style={{ marginTop: 16 }}>
-              <button className="btnGhost" onClick={onClose}>
-                Cancelar
+            <div className="modalActions" style={{ marginTop: 16, justifyContent: "space-between" }}>
+              <button
+                className="btnGhost"
+                onClick={() => {
+                  if (onTemplate) {
+                    Promise.resolve(onTemplate()).catch((err) => {
+                      setErrorMsg(
+                        err instanceof Error
+                          ? err.message
+                          : "No se pudo descargar la plantilla.",
+                      );
+                    });
+                  } else {
+                    onFlash?.("Plantilla descargada ✓");
+                  }
+                }}
+              >
+                Descargar plantilla
               </button>
-              <button className="btn" onClick={startImport}>
-                {isReal ? "Previsualizar" : "Importar"}
-              </button>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btnGhost" onClick={onClose}>
+                  Cancelar
+                </button>
+                <button className="btn" onClick={startImport}>
+                  {isReal ? "Previsualizar" : "Importar"}
+                </button>
+              </div>
             </div>
           </>
         )}

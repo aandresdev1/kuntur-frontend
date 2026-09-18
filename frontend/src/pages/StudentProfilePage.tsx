@@ -101,11 +101,6 @@ type VoiceState =
   | { mode: "processing"; transcript: string }
   | { mode: "ready"; transcript: string; draft: VoiceDraft };
 
-// Backend names are already short — use them as `short_label` directly.
-function shortLabelFor(competency_name: string | null | undefined): string {
-  return competency_name ?? "";
-}
-
 function toneFor(competency_name: string | null | undefined): CompetencyTone {
   if (!competency_name) return "pen";
   return COMPETENCY_TONE[competency_name] ?? "pen";

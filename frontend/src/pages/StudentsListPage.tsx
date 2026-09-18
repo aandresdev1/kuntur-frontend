@@ -3,7 +3,6 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { Avatar } from "@/components/Avatar";
 import { Card } from "@/components/Card";
 import { Chip } from "@/components/Chip";
-import { MockBadge } from "@/components/MockBadge";
 import { Pagination } from "@/components/Pagination";
 import { useSession } from "@/contexts/SessionContext";
 import { ImportPopup } from "@/features/import/ImportPopup";
@@ -30,10 +29,6 @@ import type {
   UUID,
 } from "@/types/domain";
 
-// Not in CONTRACT §10 — StudentGuardian only stores (id_student, id_user).
-// Parentesco/telefono/estado on the family form are UI-only mock fields.
-const PARENTESCO_OPTIONS_MOCK = ["Madre", "Padre", "Apoderado", "Tutor legal"];
-
 const STATUS_LABEL: Record<StudentStatus, string> = {
   active: "Activo",
   withdrawn: "Retirado",
@@ -41,13 +36,11 @@ const STATUS_LABEL: Record<StudentStatus, string> = {
 
 interface Filters {
   id_classroom: string;
-  apoderado: string;
   status: string; // "" | "active" | "withdrawn"
 }
 
 const EMPTY_FILTERS: Filters = {
   id_classroom: "",
-  apoderado: "",
   status: "",
 };
 
@@ -66,8 +59,6 @@ interface NewGuardianDraft {
   full_name: string;
   email: string;
   password: string;
-  parentesco_mock: string;
-  telefono_mock: string;
 }
 
 const EMPTY_GUARDIAN_DRAFT: NewGuardianDraft = {
@@ -76,8 +67,6 @@ const EMPTY_GUARDIAN_DRAFT: NewGuardianDraft = {
   full_name: "",
   email: "",
   password: "",
-  parentesco_mock: PARENTESCO_OPTIONS_MOCK[0]!,
-  telefono_mock: "",
 };
 
 const SEARCH_ICON = (
@@ -553,13 +542,6 @@ export default function StudentsListPage() {
               <button onClick={() => setFiltros({ ...filtros, status: "" })}>✕</button>
             </span>
           )}
-          {filtros.apoderado && (
-            <span className="filtroChip">
-              Apoderado: {filtros.apoderado}
-              <MockBadge />{" "}
-              <button onClick={() => setFiltros({ ...filtros, apoderado: "" })}>✕</button>
-            </span>
-          )}
           <button
             className="filtroClearAll"
             onClick={() => setFiltros(EMPTY_FILTERS)}
@@ -713,24 +695,6 @@ export default function StudentsListPage() {
                 <option value="active">Activo</option>
                 <option value="withdrawn">Retirado</option>
               </select>
-            </div>
-            <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 4 }}>
-              <label className="aulaLbl">
-                Apoderado
-                <MockBadge />
-              </label>
-              <input
-                className="input"
-                placeholder="Filtro aún no implementado"
-                value={filtrosDraft.apoderado}
-                onChange={(e) =>
-                  setFiltrosDraft({ ...filtrosDraft, apoderado: e.target.value })
-                }
-              />
-              <div className="hintSmall">
-                El apoderado no se puede filtrar sin cargar los vínculos uno a
-                uno; queda pendiente para cuando el backend agregue el join.
-              </div>
             </div>
             <div className="modalActions" style={{ marginTop: 16 }}>
               <button
@@ -948,48 +912,6 @@ export default function StudentsListPage() {
                       />
                     </div>
                   )}
-
-                  <div>
-                    <label className="aulaLbl">
-                      Detalle del vínculo
-                      <MockBadge title="Parentesco y teléfono no se guardan (no están en el contrato de StudentGuardian)." />
-                    </label>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <select
-                        className="input"
-                        style={{ maxWidth: 160 }}
-                        value={nuevoFamiliar.parentesco_mock}
-                        onChange={(e) =>
-                          setNuevoFamiliar((p) => ({
-                            ...p,
-                            parentesco_mock: e.target.value,
-                          }))
-                        }
-                      >
-                        {PARENTESCO_OPTIONS_MOCK.map((p) => (
-                          <option key={p}>{p}</option>
-                        ))}
-                      </select>
-                      <input
-                        className="input"
-                        style={{ flex: 1, minWidth: 120 }}
-                        placeholder="Teléfono"
-                        value={nuevoFamiliar.telefono_mock}
-                        onChange={(e) =>
-                          setNuevoFamiliar((p) => ({
-                            ...p,
-                            telefono_mock: e.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
 
                   {familiaError && (
                     <div className="loginError" role="alert">

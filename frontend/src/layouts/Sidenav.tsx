@@ -139,48 +139,14 @@ export function Sidenav() {
     subtitle = `Superadministración · ${MOCK_SCHOOLS.length} colegios`;
   }
 
-  // Footer per role (reference L1417-1429 + L4302-4315 for superadmin).
-  const shows_footer =
-    session.role === "school_admin" ||
-    session.role === "teacher" ||
-    session.role === "super_admin";
-  let footer_date_label = FOOTER_DATE_LABEL;
-  let footer_title = "Asistencia registrada";
-  let footer_progress = 0;
-  let footer_sub = "";
-  let footer_cta_label = "";
-  let footer_cta_to = "";
-  if (shows_footer) {
-    if (session.role === "teacher" && teacher_classroom_id) {
-      const roster = studentsInClassroom(teacher_classroom_id);
-      const marked = roster.filter((s) => {
-        const st = TODAY_ATTENDANCE_BY_STUDENT[s.id_student];
-        return st === "present" || st === "late";
-      }).length;
-      footer_progress = roster.length > 0 ? marked / roster.length : 0;
-      footer_sub = `${marked} de ${roster.length} alumnos`;
-      footer_cta_label = "Ir a asistencia";
-      footer_cta_to = "/attendance";
-    } else if (session.role === "super_admin") {
-      const total = MOCK_SCHOOLS.length;
-      const active = MOCK_SCHOOLS.filter((s) => s.status === "active").length;
-      footer_date_label = "Hoy · lunes 17 de agosto";
-      footer_title = "Licencias vigentes";
-      footer_progress = total > 0 ? active / total : 0;
-      footer_sub = `${active} de ${total} colegios activos`;
-      footer_cta_label = "Ver licencias por vencer";
-      footer_cta_to = "/schools";
-    } else {
-      const total_classrooms = MOCK_CLASSROOMS.filter(
-        (c) => !session.id_school || c.id_school === session.id_school,
-      ).length || MOCK_CLASSROOMS.length;
-      footer_progress =
-        total_classrooms > 0 ? CLASSROOMS_WITH_ATTENDANCE / total_classrooms : 0;
-      footer_sub = `${CLASSROOMS_WITH_ATTENDANCE} de ${total_classrooms} aulas`;
-      footer_cta_label = "Ver aulas pendientes";
-      footer_cta_to = "/classrooms";
-    }
-  }
+  // Super-admin footer: license progress.
+  const shows_footer = session.role === "super_admin";
+  const footer_date_label = "Hoy · lunes 17 de agosto";
+  const footer_title = "Licencias vigentes";
+  const sa_total = MOCK_SCHOOLS.length;
+  const sa_active = MOCK_SCHOOLS.filter((s) => s.status === "active").length;
+  const footer_progress = sa_total > 0 ? sa_active / sa_total : 0;
+  const footer_sub = `${sa_active} de ${sa_total} colegios activos`;
 
   const menu_aria_label =
     session.role === "teacher"
@@ -229,6 +195,37 @@ export function Sidenav() {
         ))}
       </nav>
 
+      {session.role === "school_admin" && (
+        <div className="sidenavPie">
+          {school_presentation ? (
+            <>
+              <div className="sidenavPieDia">{school_presentation.city}</div>
+              <div className="sidenavPieTit">
+                {school_presentation.teacher_count} docentes · {school_presentation.classroom_count} aulas
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="sidenavPieDia">{session.role_label}</div>
+              <div className="sidenavPieTit">{session.school_name ?? session.full_name}</div>
+            </>
+          )}
+        </div>
+      )}
+
+      {session.role === "teacher" && (
+        <div className="sidenavPie">
+          <div className="sidenavPieDia">{session.role_label}</div>
+          <div className="sidenavPieTit">{session.full_name}</div>
+          <button
+            className="sidenavPieBtn"
+            onClick={() => navigate("/attendance")}
+          >
+            Tomar asistencias
+          </button>
+        </div>
+      )}
+
       {shows_footer && (
         <div className="sidenavPie">
           <div className="sidenavPieDia">{footer_date_label}</div>
@@ -239,9 +236,9 @@ export function Sidenav() {
           <div className="sidenavPieSub">{footer_sub}</div>
           <button
             className="sidenavPieBtn"
-            onClick={() => navigate(footer_cta_to)}
+            onClick={() => navigate("/schools")}
           >
-            {footer_cta_label}
+            Ver licencias por vencer
           </button>
         </div>
       )}

@@ -44,9 +44,6 @@ export default function LoginPage() {
       <div className="loginCard">
         <div className="loginBrand">
           <span className="loginLogo">Kuntur</span>
-          <span className="loginTagline">
-            seguimiento del alumno · inicial &amp; primaria
-          </span>
         </div>
 
         <h1 className="loginTitle">Ingresa a tu cuenta</h1>
