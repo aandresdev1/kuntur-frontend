@@ -24,8 +24,10 @@ import {
   type DescriptiveConclusionWithConfirmer,
 } from "@/lib/api/descriptiveConclusions";
 import {
+  bulkCreateObservations,
   createObservation,
   generateObservationDraft,
+  generateObservationDraftForClassroom,
   observationsForStudent,
   type ObservationWithRelations,
 } from "@/lib/api/observations";
@@ -226,6 +228,7 @@ export default function StudentProfilePage() {
 
   // Observation drawer
   const [obs_drawer, setObsDrawer] = useState<DrawerMode>(null);
+  const [obs_bulk, setObsBulk] = useState(false);
   const [voice, setVoice] = useState<VoiceState>({ mode: "idle", transcript: "" });
   const [obs_manual_competency, setObsManualCompetency] = useState<UUID | "">("");
   const [obs_manual_subject, setObsManualSubject] = useState<UUID | "">("");
@@ -379,6 +382,7 @@ export default function StudentProfilePage() {
 
   const closeDrawer = () => {
     setObsDrawer(null);
+    setObsBulk(false);
     setVoice({ mode: "idle", transcript: "" });
     setObsError("");
   };
@@ -405,11 +409,9 @@ export default function StudentProfilePage() {
     setVoice({ mode: "processing", transcript });
     setObsError("");
     try {
-      const res = await generateObservationDraft({
-        id_student: id_student_param!,
-        transcript,
-        source,
-      });
+      const res = obs_bulk && student?.id_classroom
+        ? await generateObservationDraftForClassroom({ id_classroom: student.id_classroom, transcript, source })
+        : await generateObservationDraft({ id_student: id_student_param!, transcript, source });
       setVoice({
         mode: "ready",
         transcript,
@@ -475,15 +477,26 @@ export default function StudentProfilePage() {
     setObsSaving(true);
     setObsError("");
     try {
-      await createObservation({
-        id_student: id_student_param!,
-        id_competency: voice.draft.id_competency,
-        id_subject: voice.draft.id_subject || null,
-        content: voice.draft.text.trim(),
-        source: "voice",
-      });
-      await refetchObservations();
-      showToast("Observación registrada ✓");
+      if (obs_bulk && student?.id_classroom) {
+        const res = await bulkCreateObservations({
+          id_classroom: student.id_classroom,
+          id_competency: voice.draft.id_competency,
+          id_subject: voice.draft.id_subject || null,
+          content: voice.draft.text.trim(),
+          source: "voice",
+        });
+        showToast(`${res.count} observaciones registradas ✓`);
+      } else {
+        await createObservation({
+          id_student: id_student_param!,
+          id_competency: voice.draft.id_competency,
+          id_subject: voice.draft.id_subject || null,
+          content: voice.draft.text.trim(),
+          source: "voice",
+        });
+        await refetchObservations();
+        showToast("Observación registrada ✓");
+      }
       closeDrawer();
     } catch (err) {
       setObsError(
@@ -509,15 +522,26 @@ export default function StudentProfilePage() {
     setObsSaving(true);
     setObsError("");
     try {
-      await createObservation({
-        id_student: id_student_param!,
-        id_competency: obs_manual_competency,
-        id_subject: obs_manual_subject || null,
-        content: obs_manual_text.trim(),
-        source: "text",
-      });
-      await refetchObservations();
-      showToast("Observación registrada ✓");
+      if (obs_bulk && student?.id_classroom) {
+        const res = await bulkCreateObservations({
+          id_classroom: student.id_classroom,
+          id_competency: obs_manual_competency,
+          id_subject: obs_manual_subject || null,
+          content: obs_manual_text.trim(),
+          source: "text",
+        });
+        showToast(`${res.count} observaciones registradas ✓`);
+      } else {
+        await createObservation({
+          id_student: id_student_param!,
+          id_competency: obs_manual_competency,
+          id_subject: obs_manual_subject || null,
+          content: obs_manual_text.trim(),
+          source: "text",
+        });
+        await refetchObservations();
+        showToast("Observación registrada ✓");
+      }
       closeDrawer();
     } catch (err) {
       setObsError(
@@ -1149,7 +1173,7 @@ export default function StudentProfilePage() {
                   Agregar observación
                 </div>
                 <div className="fichaSub" style={{ margin: 0 }}>
-                  {student.full_name} · {classroom_name}
+                  {obs_bulk ? `Todo el aula · ${classroom_name}` : `${student.full_name} · ${classroom_name}`}
                 </div>
               </div>
               <button
@@ -1205,6 +1229,40 @@ export default function StudentProfilePage() {
                   </span>
                 </button>
               </div>
+
+              {is_teacher && student.id_classroom && roster.length > 0 && (
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginTop: 14,
+                    padding: "10px 13px",
+                    background: obs_bulk ? "var(--pen-tint, #eef2ff)" : "var(--paper)",
+                    border: `1.5px solid ${obs_bulk ? "var(--pen)" : "var(--line)"}`,
+                    borderRadius: 10,
+                    cursor: "pointer",
+                    userSelect: "none",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={obs_bulk}
+                    onChange={(e) => {
+                      setObsBulk(e.target.checked);
+                      setObsError("");
+                      setVoice({ mode: "idle", transcript: "" });
+                    }}
+                    style={{ width: 16, height: 16, accentColor: "var(--pen)", cursor: "pointer" }}
+                  />
+                  <span style={{ fontSize: 13.5, fontWeight: 600, color: obs_bulk ? "var(--pen)" : "var(--ink)" }}>
+                    Enviar a todo el aula
+                  </span>
+                  <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 2 }}>
+                    · {roster.length} alumnos
+                  </span>
+                </label>
+              )}
 
               {obs_drawer === "voz" && (
                 <>
@@ -1403,7 +1461,7 @@ export default function StudentProfilePage() {
                       disabled={voice.mode !== "ready" || obsSaving}
                       onClick={guardarObsVoz}
                     >
-                      {obsSaving ? "Guardando…" : "Guardar observación"}
+                      {obsSaving ? "Guardando…" : obs_bulk ? "Guardar para todos" : "Guardar observación"}
                     </button>
                   </>
                 ) : (
@@ -1420,7 +1478,7 @@ export default function StudentProfilePage() {
                       onClick={guardarObsManual}
                       disabled={obsSaving}
                     >
-                      {obsSaving ? "Guardando…" : "Guardar observación"}
+                      {obsSaving ? "Guardando…" : obs_bulk ? "Guardar para todos" : "Guardar observación"}
                     </button>
                   </>
                 )}

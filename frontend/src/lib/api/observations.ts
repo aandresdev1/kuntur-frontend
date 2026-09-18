@@ -70,3 +70,44 @@ export function generateObservationDraft(
     body,
   });
 }
+
+export interface GenerateObservationDraftForClassroomInput {
+  id_classroom: UUID;
+  transcript: string;
+  source?: ObservationSource;
+}
+
+export function generateObservationDraftForClassroom(
+  input: GenerateObservationDraftForClassroomInput,
+): Promise<GeneratedObservationDraft> {
+  const body: Record<string, unknown> = {
+    id_classroom: input.id_classroom,
+    transcript: input.transcript,
+  };
+  if (input.source) body.source = input.source;
+  return apiFetch<GeneratedObservationDraft>("/observations/generate-draft-classroom", {
+    method: "POST",
+    body,
+  });
+}
+
+export interface BulkCreateObservationInput {
+  id_classroom: UUID;
+  id_competency: UUID;
+  id_subject?: UUID | null;
+  content: string;
+  source?: ObservationSource;
+}
+
+export function bulkCreateObservations(
+  input: BulkCreateObservationInput,
+): Promise<{ count: number }> {
+  const body: Record<string, unknown> = {
+    id_classroom: input.id_classroom,
+    id_competency: input.id_competency,
+    content: input.content,
+  };
+  if (input.id_subject) body.id_subject = input.id_subject;
+  if (input.source) body.source = input.source;
+  return apiFetch<{ count: number }>("/observations/bulk", { method: "POST", body });
+}
