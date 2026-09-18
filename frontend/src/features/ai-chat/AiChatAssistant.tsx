@@ -22,7 +22,6 @@ import { listCompetencies } from "@/lib/api/competencies";
 import {
   createObservation,
   generateObservationDraft,
-  generateObservationDraftForClassroom,
   bulkCreateObservations,
 } from "@/lib/api/observations";
 import { ApiError } from "@/lib/api";
