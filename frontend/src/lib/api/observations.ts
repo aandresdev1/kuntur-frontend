@@ -46,6 +46,7 @@ export interface GenerateObservationDraftInput {
 }
 
 export interface GeneratedObservationDraft {
+  is_for_all: boolean;
   draft: string;
   id_competency: UUID | null;
   competency_name: string | null;

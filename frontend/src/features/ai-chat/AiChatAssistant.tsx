@@ -22,8 +22,12 @@ import { listCompetencies } from "@/lib/api/competencies";
 import {
   createObservation,
   generateObservationDraft,
+  generateObservationDraftForClassroom,
+  bulkCreateObservations,
 } from "@/lib/api/observations";
 import { ApiError } from "@/lib/api";
+
+const ALL_STUDENTS = "__all__";
 
 interface AiChatAssistantProps {
   role: Extract<UserRole, "teacher" | "school_admin">;
@@ -188,7 +192,6 @@ export default function AiChatAssistant({ role }: AiChatAssistantProps) {
     if (!raw) return;
     setActionError("");
     setAction({ mode: "processing" });
-    // La detección de alumno se hace acá, no en tiempo real mientras escribe.
     const matched = findStudentInText(raw, student_source);
     const chosen = matched ?? student_source[0];
     if (!chosen) {
@@ -203,18 +206,19 @@ export default function AiChatAssistant({ role }: AiChatAssistantProps) {
         transcript: raw,
         source,
       });
+      // El AI devuelve is_for_all=true cuando la observación es claramente grupal.
+      const effective_student = res.is_for_all ? ALL_STUDENTS : chosen.id_student;
       setAction({
         mode: "ready",
         draft: {
           id_classroom: initial_classroom,
-          id_student: chosen.id_student,
+          id_student: effective_student,
           id_competency: (res.id_competency ?? "") as UUID | "",
           id_subject: (res.id_subject ?? "") as UUID | "",
           text: res.draft?.trim() || capitalizeSentence(raw),
         },
       });
     } catch (err) {
-      // Sesión mock / backend caído → borrador local para no romper la demo.
       const message =
         err instanceof ApiError
           ? err.message
@@ -246,30 +250,42 @@ export default function AiChatAssistant({ role }: AiChatAssistantProps) {
       );
       return;
     }
+    const isAllStudents = action.draft.id_student === ALL_STUDENTS;
     setSaving(true);
     setActionError("");
     try {
-      await createObservation({
-        id_student: action.draft.id_student,
-        id_competency: action.draft.id_competency,
-        id_subject: action.draft.id_subject || null,
-        content: trimmed,
-        source: "voice",
-      });
-      const detail: ActionRegisteredDetail = {
-        id_student: action.draft.id_student,
-        id_competency: action.draft.id_competency,
-        text: trimmed,
-      };
-      window.dispatchEvent(
-        new CustomEvent<ActionRegisteredDetail>(ACTION_REGISTERED_EVENT, {
-          detail,
-        }),
-      );
-      const student_name =
-        student_source.find((s) => s.id_student === detail.id_student)
-          ?.full_name ?? "el alumno";
-      showToast(`Observación registrada en la ficha de ${student_name} ✓`);
+      if (isAllStudents) {
+        const res = await bulkCreateObservations({
+          id_classroom: action.draft.id_classroom as UUID,
+          id_competency: action.draft.id_competency,
+          id_subject: action.draft.id_subject || null,
+          content: trimmed,
+          source: "voice",
+        });
+        showToast(`${res.count} observaciones guardadas en el aula ✓`);
+      } else {
+        await createObservation({
+          id_student: action.draft.id_student,
+          id_competency: action.draft.id_competency,
+          id_subject: action.draft.id_subject || null,
+          content: trimmed,
+          source: "voice",
+        });
+        const detail: ActionRegisteredDetail = {
+          id_student: action.draft.id_student,
+          id_competency: action.draft.id_competency,
+          text: trimmed,
+        };
+        window.dispatchEvent(
+          new CustomEvent<ActionRegisteredDetail>(ACTION_REGISTERED_EVENT, {
+            detail,
+          }),
+        );
+        const student_name =
+          student_source.find((s) => s.id_student === detail.id_student)
+            ?.full_name ?? "el alumno";
+        showToast(`Observación registrada en la ficha de ${student_name} ✓`);
+      }
       closeAction();
     } catch (err) {
       setActionError(
@@ -444,6 +460,7 @@ export default function AiChatAssistant({ role }: AiChatAssistantProps) {
                       })
                     }
                   >
+                    <option value={ALL_STUDENTS}>Todos los alumnos</option>
                     {student_source
                       .filter(
                         (st) => st.id_classroom === action.draft.id_classroom,
@@ -510,7 +527,7 @@ export default function AiChatAssistant({ role }: AiChatAssistantProps) {
                       onClick={() => void confirmDraft()}
                       disabled={saving}
                     >
-                      {saving ? "Guardando…" : "Confirmar y guardar"}
+                      {saving ? "Guardando…" : action.draft.id_student === ALL_STUDENTS ? "Guardar para todos" : "Confirmar y guardar"}
                     </button>
                   </div>
                 </>
