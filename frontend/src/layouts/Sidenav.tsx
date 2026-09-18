@@ -1,12 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useSession } from "@/contexts/SessionContext";
 import { MOCK_SCHOOLS, SCHOOL_PRESENTATION } from "@/data/schools";
-import {
-  MOCK_CLASSROOMS,
-  classroomsForTeacher,
-} from "@/data/classrooms";
-import { studentsInClassroom } from "@/data/students";
-import { TODAY_ATTENDANCE_BY_STUDENT } from "@/data/attendance";
+import { MOCK_CLASSROOMS, classroomsForTeacher } from "@/data/classrooms";
 import type { UserRole } from "@/types/domain";
 
 const DASHBOARD_ICON = (
@@ -97,11 +92,6 @@ const MENU_BY_ROLE: Record<UserRole, NavItem[]> = {
   ],
 };
 
-// Matches the sidenavPie footer text in the reference (App.jsx L1418).
-const FOOTER_DATE_LABEL = "Hoy · viernes 15 de agosto";
-
-// Hardcoded to match reference sidenav footer (App.jsx L1385).
-const CLASSROOMS_WITH_ATTENDANCE = 3;
 
 function firstToken(text: string): string {
   const comma = text.indexOf(",");
